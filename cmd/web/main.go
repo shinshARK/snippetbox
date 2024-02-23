@@ -3,9 +3,12 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
+
+
 	"github.com/shinshARK/snippetbox/internal/models"
 
 	_ "github.com/go-sql-driver/mysql" // New import
@@ -15,6 +18,7 @@ type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
 	snippets *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 type config struct {
@@ -41,10 +45,16 @@ func main() {
 
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		snippets: &models.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	server := &http.Server{
