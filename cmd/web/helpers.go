@@ -36,7 +36,8 @@ func (app *application) notFound(w http.ResponseWriter) {
 
 func (app *application) newTemplateData(r *http.Request) *templateData {
 	return &templateData{
-		CurrentYear:time.Now().Year(),
+		CurrentYear: time.Now().Year(),
+		Flash: app.sessionManager.PopString(r.Context(), "flash"),
 	}
 }
 
@@ -72,7 +73,6 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 
 }
 
-
 func (app *application) decodePostForm(r *http.Request, dest any) error {
 	err := r.ParseForm()
 	if err != nil {
@@ -80,12 +80,13 @@ func (app *application) decodePostForm(r *http.Request, dest any) error {
 	}
 
 	err = app.formDecoder.Decode(dest, r.PostForm)
-	if err != nil {
+	if err != nil  {
 		var invalidDecoderError *form.InvalidDecoderError
 
 		if errors.As(err, &invalidDecoderError) {
 			panic(err)
 		}
+
 		return err
 	}
 	return nil
