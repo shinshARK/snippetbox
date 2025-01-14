@@ -18,4 +18,4 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Start the Go server with the parsed address
-go run ./cmd/web -addr="$ADDR" 2> >(tee -a ./tmp/error.log >&2) | tee -a ./tmp/info.log
+go run ./cmd/web -addr="$ADDR" 2>&1 | tee -a ./tmp/logs.log

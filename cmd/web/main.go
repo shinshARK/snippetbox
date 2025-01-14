@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/shinshARK/snippetbox/internal/logging"
 	"github.com/shinshARK/snippetbox/internal/models"
 
 	"github.com/alexedwards/scs/mysqlstore"
@@ -19,8 +21,9 @@ import (
 )
 
 type application struct {
-	errorLog       *log.Logger
-	infoLog        *log.Logger
+	// errorLog       *log.Logger
+	// infoLog        *log.Logger
+	logger         *slog.Logger
 	snippets       *models.SnippetModel
 	templateCache  map[string]*template.Template
 	formDecoder    *form.Decoder
@@ -43,19 +46,27 @@ func main() {
 
 	fmt.Println(cfg)
 
-	infoLog := log.New(os.Stdout, "INFO:\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR:\t", log.Ldate|log.Ltime|log.Lshortfile)
+	// infoLog := log.New(os.Stdout, "INFO:\t", log.Ldate|log.Ltime)
+	// errorLog := log.New(os.Stderr, "ERROR:\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})) // newer normal logs with structured logs
+	errorLog := log.New(logging.NewSlogWrapper(logger), "", 0)                 // wrapper to support errorlogs of http.Serve
 
 	db, err := openDB(cfg.dsn)
 	if err != nil {
-		errorLog.Fatal(err)
+		// errorLog.Fatal(err)
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
 
 	defer db.Close()
 
 	templateCache, err := newTemplateCache()
 	if err != nil {
-		errorLog.Fatal(err)
+		// errorLog.Fatal(err)
+		logger.Error(err.Error())
+		os.Exit(1)
+
 	}
 
 	formDecoder := form.NewDecoder()
@@ -65,8 +76,9 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 
 	app := &application{
-		errorLog:       errorLog,
-		infoLog:        infoLog,
+		// errorLog:       errorLog,
+		// infoLog:        infoLog,
+		logger:         logger,
 		snippets:       &models.SnippetModel{DB: db},
 		templateCache:  templateCache,
 		formDecoder:    formDecoder,
@@ -79,9 +91,13 @@ func main() {
 		Handler:  app.routes(),
 	}
 
-	infoLog.Printf("Starting server on %s", cfg.addr)
+	// infoLog.Printf("Starting server on %s", cfg.addr)
+	logger.Info("Starting server", "port", cfg.addr)
+
 	err = server.ListenAndServe()
-	errorLog.Fatal(err)
+	// errorLog.Fatal(err)
+	logger.Error(err.Error())
+	os.Exit(1)
 }
 
 // The openDB() function wraps sql.Open() and returns a sql.DB connection pool

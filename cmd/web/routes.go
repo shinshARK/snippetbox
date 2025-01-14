@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"path/filepath"
 
-
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
@@ -28,10 +27,16 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/snippet/create", dynamic.ThenFunc(app.snippetCreateForm))
 	router.Handler(http.MethodPost, "/snippet/create", dynamic.ThenFunc(app.snippetCreate))
 
+	// Test route to trigger an internal server error
+	// router.Handler(http.MethodGet, "/trigger-error", dynamic.ThenFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	err := fmt.Errorf("simulated error for testing")
+	// 	app.serverError(w, err)
+	// }))
+
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
 	return standard.Then(router)
-}	
+}
 
 type neuteredFileSystem struct {
 	fs http.FileSystem

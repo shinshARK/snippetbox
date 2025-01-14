@@ -1,0 +1,4 @@
+{:4000 ./ui/static web:letsgo15942434@/snippetbox?parseTime=true}
+time=2025-01-14T16:49:54.403+07:00 level=INFO msg="Starting server" port=:4000
+time=2025-01-14T16:51:58.989+07:00 level=INFO msg="HTTP request received" remote_addr=172.31.16.1:52522 protocol=HTTP/1.1 method=GET url=/
+time=2025-01-14T16:52:04.299+07:00 level=INFO msg="HTTP request received" remote_addr=172.31.16.1:52522 protocol=HTTP/1.1 method=GET url=/snippet/create

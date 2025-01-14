@@ -14,8 +14,11 @@ import (
 // The serverError helper writes an error message and stack trace to the errorLog,
 // then sends a generic 500 Internal Server Error response to the user.
 func (app *application) serverError(w http.ResponseWriter, err error) {
-	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.errorLog.Output(2, trace)
+	trace := debug.Stack()
+	app.logger.Error("Internal server error",
+		"error", err.Error(),
+		"stacktrace", fmt.Sprintf("\n%s", trace),
+	)
 
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
@@ -37,7 +40,7 @@ func (app *application) notFound(w http.ResponseWriter) {
 func (app *application) newTemplateData(r *http.Request) *templateData {
 	return &templateData{
 		CurrentYear: time.Now().Year(),
-		Flash: app.sessionManager.PopString(r.Context(), "flash"),
+		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
 	}
 }
 
@@ -80,7 +83,7 @@ func (app *application) decodePostForm(r *http.Request, dest any) error {
 	}
 
 	err = app.formDecoder.Decode(dest, r.PostForm)
-	if err != nil  {
+	if err != nil {
 		var invalidDecoderError *form.InvalidDecoderError
 
 		if errors.As(err, &invalidDecoderError) {
