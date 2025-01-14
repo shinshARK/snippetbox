@@ -1,3 +1,21 @@
-#! /bin/bash
-# go run ./cmd/web >>./tmp/info.temp.log 2>>./tmp/error.temp.log
-go run ./cmd/web 2> >(tee -a ./tmp/error.log >&2) | tee -a ./tmp/info.log
+#!/bin/bash
+
+# Default values for flags
+ADDR=":4000"  # Default server address
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -addr=*)
+      ADDR="${1#*=}"
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# Start the Go server with the parsed address
+go run ./cmd/web -addr="$ADDR" 2> >(tee -a ./tmp/error.log >&2) | tee -a ./tmp/info.log
