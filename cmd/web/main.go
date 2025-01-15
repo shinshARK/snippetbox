@@ -5,13 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/shinshARK/snippetbox/internal/logging"
 	"github.com/shinshARK/snippetbox/internal/models"
 
 	"github.com/alexedwards/scs/mysqlstore"
@@ -50,7 +48,7 @@ func main() {
 	// errorLog := log.New(os.Stderr, "ERROR:\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})) // newer normal logs with structured logs
-	errorLog := log.New(logging.NewSlogWrapper(logger), "", 0)                 // wrapper to support errorlogs of http.Serve
+	// errorLog := log.New(logging.NewSlogWrapper(logger), "", 0)                 // wrapper to support errorlogs of http.Serve
 
 	db, err := openDB(cfg.dsn)
 	if err != nil {
@@ -87,7 +85,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:     cfg.addr,
-		ErrorLog: errorLog,
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		Handler:  app.routes(),
 	}
 
