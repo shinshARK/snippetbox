@@ -1,0 +1,3 @@
+TLS & HTTP/2:
+Make a tls/ directory and use mkcert, generate_cert.go for development,
+for production maybe use letsencrypt.com

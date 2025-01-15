@@ -72,6 +72,11 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+	// Make sure that the Secure attribute is set on our session cookies.
+	// Setting this means that the cookie will only be sent by a user's web
+	// browser when a HTTPS connection is being used (and won't be sent over an
+	// unsecure HTTP connection).
+	sessionManager.Cookie.Secure = true
 
 	app := &application{
 		// errorLog:       errorLog,
@@ -92,7 +97,8 @@ func main() {
 	// infoLog.Printf("Starting server on %s", cfg.addr)
 	logger.Info("Starting server", "port", cfg.addr)
 
-	err = server.ListenAndServe()
+	// err = server.ListenAndServe()
+	err = server.ListenAndServeTLS("./tls/localhost+3.pem", "./tls/localhost+3-key.pem")
 	// errorLog.Fatal(err)
 	logger.Error(err.Error())
 	os.Exit(1)
