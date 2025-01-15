@@ -24,6 +24,7 @@ type application struct {
 	// infoLog        *log.Logger
 	logger         *slog.Logger
 	snippets       *models.SnippetModel
+	users          *models.UserModel
 	templateCache  map[string]*template.Template
 	formDecoder    *form.Decoder
 	sessionManager *scs.SessionManager
@@ -84,6 +85,7 @@ func main() {
 		// infoLog:        infoLog,
 		logger:         logger,
 		snippets:       &models.SnippetModel{DB: db},
+		users:          &models.UserModel{DB: db},
 		templateCache:  templateCache,
 		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
@@ -100,6 +102,10 @@ func main() {
 		ErrorLog:  slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		Handler:   app.routes(),
 		TLSConfig: tlsConfig,
+		// Add Idle, Read and Write timeouts to the server.
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	// infoLog.Printf("Starting server on %s", cfg.addr)
